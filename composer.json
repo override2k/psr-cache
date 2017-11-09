@@ -1,0 +1,29 @@
+{
+    "name": "overdesign/psr-cache",
+    "description": "File cache implementation using PSR6",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Fernando Robledo",
+            "email": "overdesign@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3",
+        "psr/cache": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Overdesign\\PsrCache\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Overdesign\\PsrCache\\Test\\": "test/"
+        }
+    },
+    "license": "MIT"
+}

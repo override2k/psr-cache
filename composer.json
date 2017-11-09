@@ -1,0 +1,32 @@
+{
+    "name": "overdesign/psr-cache",
+    "description": "PSR-6 compatible cache library implementation using file system",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Fernando Robledo",
+            "email": "overdesign@gmail.com"
+        }
+    ],
+    "provide": {
+        "psr/cache-implementation": "1.0"
+    },
+    "require": {
+        "php": ">=5.3",
+        "psr/cache": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Overdesign\\PsrCache\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Overdesign\\PsrCache\\Test\\": "test/"
+        }
+    },
+    "license": "MIT"
+}

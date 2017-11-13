@@ -124,7 +124,8 @@ class CacheItem implements CacheItemInterface
      */
     public function expiresAt($expiration)
     {
-        if ($expiration instanceof DateTimeInterface) {
+        if ($expiration instanceof DateTime || // php < 5.5
+            $expiration instanceof DateTimeInterface) {
 
             $this->expiresAt = $expiration;
 

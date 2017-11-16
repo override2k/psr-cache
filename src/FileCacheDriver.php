@@ -74,9 +74,10 @@ class FileCacheDriver implements CacheItemPoolInterface
     {
         $file = $this->getFilename($key);
 
-        if (file_exists($file)) {
+        if (is_readable($file) && is_file($file)) {
 
-            $data = @unserialize(file_get_contents($file));
+            $data = file_get_contents($file);
+            $data = $data === false ? false : @unserialize($data);
 
             if ($data !== false && $data instanceof CacheItem) {
                 if ($data->isHit() === false) {// Expired
@@ -85,8 +86,6 @@ class FileCacheDriver implements CacheItemPoolInterface
 
                 return $data;
             }
-
-            return new CacheItem($key); // File corrupted
 
         }
 

@@ -10,6 +10,7 @@ use Overdesign\PsrCache\FileCacheDriver;
 
 /**
  * @covers Overdesign\PsrCache\FileCacheDriver
+ * @covers Overdesign\PsrCache\CacheItem
  */
 class FileCacheDriverTest extends PHPUnit_Framework_TestCase
 {

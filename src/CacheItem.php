@@ -149,6 +149,11 @@ class CacheItem implements CacheItemInterface
      */
     public function expiresAfter($time)
     {
+        if ($time === null) {
+            $this->expiresAt = $time;
+            return $this;
+        }
+
         $now  = new DateTime();
         $time = ($time instanceof DateInterval) ? $time : new DateInterval('PT' . $time . 'S');
 

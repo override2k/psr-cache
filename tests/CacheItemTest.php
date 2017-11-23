@@ -8,6 +8,9 @@
 
 use Overdesign\PsrCache\CacheItem;
 
+/**
+ * @covers Overdesign\PsrCache\CacheItem
+ */
 class CacheItemTest extends PHPUnit_Framework_TestCase
 {
 
@@ -42,6 +45,18 @@ class CacheItemTest extends PHPUnit_Framework_TestCase
 
         $this->assertFalse($item->isHit());
         $this->assertNull($item->get());
+    }
+
+    public function testCacheItemSet()
+    {
+        $item = new CacheItem('key', null, true);
+        $item->set('my data')
+            ->expiresAt(100)
+            ->expiresAfter(null);
+
+        $this->assertTrue($item->isHit());
+        $this->assertEquals('key', $item->getKey());
+        $this->assertEquals('my data', $item->get());
     }
 
 }

@@ -8,6 +8,9 @@
 use Overdesign\PsrCache\CacheItem;
 use Overdesign\PsrCache\FileCacheDriver;
 
+/**
+ * @covers Overdesign\PsrCache\FileCacheDriver
+ */
 class FileCacheDriverTest extends PHPUnit_Framework_TestCase
 {
 

@@ -77,7 +77,7 @@ class FileCacheDriver implements CacheItemPoolInterface
         if (is_readable($file) && is_file($file)) {
 
             $data = file_get_contents($file);
-            $data = $data === false ? false : @unserialize($data);
+            $data = $data === false ? false : unserialize($data);
 
             if ($data !== false && $data instanceof CacheItem) {
                 if ($data->isHit() === false) {// Expired

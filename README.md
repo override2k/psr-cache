@@ -40,6 +40,23 @@ if ($item->isHit()) {
 }
 ```
 
+## Garbage collector
+
+The drivers only deletes expired files when you try to recover them explicitly.
+ 
+In order to clean the cache files you have three methods.
+
+`clear()` Deletes all the items in the current pool
+
+`clearExpired()` Deletes all the expired items in the pool
+
+`gc()` Acts as a garbage collector
+
+It's not recommended to call the `gc()` method within the normal user flow operation as it can be a high time consuming operation. 
+The ideal option is to set a cron to call the `gc()` method.
+
+You can pass various options to the method, see the phpdoc to know more about that options.
+
 ## TODO
 
 - Add [PSR-16](http://www.php-fig.org/psr/psr-16/) support

@@ -25,7 +25,7 @@ class FileCacheDriver implements CacheItemPoolInterface
      */
     public function __construct($path = __DIR__)
     {
-        $this->path = $path;
+        $this->path = substr($path, strlen($path) - 1, 1) === DIRECTORY_SEPARATOR ? $path : $path . DIRECTORY_SEPARATOR;
     }
 
     /**
@@ -47,11 +47,11 @@ class FileCacheDriver implements CacheItemPoolInterface
      * @param string $key
      *
      * @return string
-     * @throws \Overdesign\PsrCache\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function getFilename($key)
     {
-        return $this->path . "/cachepool-{$this->checkKey($key)}.php";
+        return $this->path . "cachepool-{$this->checkKey($key)}.php";
     }
 
     /**
@@ -149,7 +149,7 @@ class FileCacheDriver implements CacheItemPoolInterface
      */
     public function clear()
     {
-        $files  = glob($this->path . '/cachepool-*.php');
+        $files  = glob($this->path . 'cachepool-*.php', GLOB_NOSORT);
         $result = true;
 
         foreach ($files as $file) {
@@ -261,4 +261,59 @@ class FileCacheDriver implements CacheItemPoolInterface
         return $allSaved;
     }
 
+    public function clearExpired()
+    {
+        $regex  = '/cachepool-([a-zA-Z\d\.\_]+)\.php$/';
+        $files  = glob($this->path . 'cachepool-*.php', GLOB_NOSORT);
+        $result = true;
+
+        foreach ($files as $file) {
+
+            if (preg_match($regex, $file, $key)) {
+
+                $item = $this->getItem($key['key']);
+
+                if (!$item->isHit() && is_file($file)) {
+                    $result = @unlink($file) && $result;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Cache pool garbage collector, deletes all cache files and optional empty directories in the current cache path
+     * It can do a recursive search over the main directory, the maximum deep for the recursive can be specified
+     *
+     * @param bool $checkExpired if true only deletes the items that are expired else deletes all cached files
+     * @param bool $recursive true for doing a recursive gc over the main path
+     * @param bool $deleteEmpty true for deleting empty directories inside the path
+     * @param int $depth maximum search depth
+     *
+     * @return bool
+     */
+    public function gc($checkExpired = true, $recursive = false, $deleteEmpty = true, $depth = 1)
+    {
+        $recursive = $recursive && $depth > 0;
+        $checkExpired ? $this->clearExpired() : $this->clear();
+
+        if (!$recursive) {
+            return true;
+        }
+
+        $dirs = glob($this->path . '*', GLOB_ONLYDIR | GLOB_NOSORT);
+
+        foreach ($dirs as $dir) {
+
+            $pool = new self($dir);
+            $pool->gc($recursive, $deleteEmpty, --$depth);
+
+            if ($deleteEmpty && count(glob($dir . DIRECTORY_SEPARATOR . '*', GLOB_NOSORT)) === 0) {
+                rmdir($dir);
+            }
+        }
+
+        return true;
+    }
 }

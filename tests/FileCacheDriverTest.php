@@ -76,21 +76,21 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
 
     }
 
-    public function testSaveDeffered()
+    public function testSaveDeferred()
     {
         $driver = new FileCacheDriver();
 
-        $item = $driver->getItem('deffered');
+        $item = $driver->getItem('deferred');
 
         $item->set('test');
         $driver->saveDeferred($item);
 
-        $this->assertFalse($driver->getItem('deffered')->isHit());
+        $this->assertFalse($driver->getItem('deferred')->isHit());
 
         $driver->commit();
 
-        $this->assertTrue($driver->getItem('deffered')->isHit());
-        $this->assertTrue($driver->deleteItem('deffered'));
+        $this->assertTrue($driver->getItem('deferred')->isHit());
+        $this->assertTrue($driver->deleteItem('deferred'));
     }
 
     public function testClear()
@@ -109,6 +109,85 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
         }
 
         $this->assertTrue($driver->clear());
+    }
+
+    public function testClearExpired()
+    {
+        $keys1   = array('a', 'b', 'c');
+        $keys2   = array('d', 'e', 'f');
+        $driver = new FileCacheDriver();
+
+        $this->assertFalse($driver->deleteItems($keys1));
+        $this->assertFalse($driver->deleteItems($keys2));
+
+        $items1 = $driver->getItems($keys1);
+        $items2 = $driver->getItems($keys2);
+
+        foreach ($items1 as $key => $item) {
+            /** @var $item CacheItem */
+            $item->set('clean-expired');
+            $item->expiresAfter(1);
+            $driver->save($item);
+        }
+
+        foreach ($items2 as $key => $item) {
+            /** @var $item CacheItem */
+            $item->set('clean-expired');
+            $item->expiresAfter(3);
+            $driver->save($item);
+        }
+
+        sleep(2);
+
+        $this->assertTrue($driver->clearExpired());
+        $fileCount = glob($driver->getPath() . 'cachepool-*.php', GLOB_NOSORT);
+        $this->assertCount(3, $fileCount);
+
+        sleep(2);
+
+        $this->assertTrue($driver->clearExpired());
+        $fileCount = glob($driver->getPath() . 'cachepool-*.php', GLOB_NOSORT);
+
+        $this->assertCount(0, $fileCount);
+    }
+
+    public function testGc()
+    {
+        $keys1   = array('a', 'b', 'c');
+        $keys2   = array('d', 'e', 'f');
+        $driver = new FileCacheDriver();
+
+        $this->assertFalse($driver->deleteItems($keys1));
+        $this->assertFalse($driver->deleteItems($keys2));
+
+        $items1 = $driver->getItems($keys1);
+        $items2 = $driver->getItems($keys2);
+
+        foreach ($items1 as $key => $item) {
+            /** @var $item CacheItem */
+            $item->set('garbage-expired');
+            $item->expiresAfter(1);
+            $driver->save($item);
+        }
+
+        foreach ($items2 as $key => $item) {
+            /** @var $item CacheItem */
+            $item->set('garbage-not-expired');
+            $item->expiresAfter(1000);
+            $driver->save($item);
+        }
+
+
+        sleep(2);
+
+        $this->assertTrue($driver->gc(true, true));
+        $fileCount = glob($driver->getPath() . 'cachepool-*.php', GLOB_NOSORT);
+        $this->assertCount(3, $fileCount);
+
+        $this->assertTrue($driver->gc(false, true));
+        $fileCount = glob($driver->getPath() . 'cachepool-*.php', GLOB_NOSORT);
+        $this->assertCount(0, $fileCount);
+
     }
 
 }

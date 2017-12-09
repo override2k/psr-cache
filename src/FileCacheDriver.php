@@ -29,6 +29,16 @@ class FileCacheDriver implements CacheItemPoolInterface
     }
 
     /**
+     * Returns current cache folder path
+     *
+     * @return string
+     */
+    public function getPath()
+    {
+        return $this->path;
+    }
+
+    /**
      * @param string $key
      *
      * @return string
@@ -269,7 +279,7 @@ class FileCacheDriver implements CacheItemPoolInterface
      */
     public function clearExpired()
     {
-        $regex  = '/cachepool-([a-zA-Z\d\.\_]+)\.php$/';
+        $regex  = '/cachepool-(?P<key>[a-zA-Z\d\.\_]+)\.php$/';
         $files  = glob($this->path . 'cachepool-*.php', GLOB_NOSORT);
         $result = true;
 
@@ -283,11 +293,13 @@ class FileCacheDriver implements CacheItemPoolInterface
 
                 $key = $this->checkKey($key['key']);
 
-                if (is_file($file) && $this->getItem($key)->isHit()) {
-                    $result = @unlink($file) && $result;
-                }
+                is_file($file) && !$this->getItem($key); // Get item auto clears expired items
 
-            } catch (InvalidArgumentException $e) {}
+            } catch (InvalidArgumentException $e) {
+
+                $result = false;
+
+            }
 
         }
 

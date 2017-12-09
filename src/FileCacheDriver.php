@@ -261,6 +261,12 @@ class FileCacheDriver implements CacheItemPoolInterface
         return $allSaved;
     }
 
+    /**
+     * Deletes all the expired items in the pool.
+     *
+     * @return bool
+     *   True if the pool was successfully cleared. False if there was an error.
+     */
     public function clearExpired()
     {
         $regex  = '/cachepool-([a-zA-Z\d\.\_]+)\.php$/';
@@ -269,14 +275,20 @@ class FileCacheDriver implements CacheItemPoolInterface
 
         foreach ($files as $file) {
 
-            if (preg_match($regex, $file, $key)) {
+            if (preg_match($regex, $file, $key) === false) {
+                continue;
+            }
 
-                $item = $this->getItem($key['key']);
+            try {
 
-                if (!$item->isHit() && is_file($file)) {
+                $key = $this->checkKey($key['key']);
+
+                if (is_file($file) && $this->getItem($key)->isHit()) {
                     $result = @unlink($file) && $result;
                 }
-            }
+
+            } catch (InvalidArgumentException $e) {}
+
         }
 
         return $result;
@@ -291,15 +303,17 @@ class FileCacheDriver implements CacheItemPoolInterface
      * @param bool $deleteEmpty true for deleting empty directories inside the path
      * @param int $depth maximum search depth
      *
-     * @return bool
+     * @return bool True if all the items where deleted
+     *
+     * @throws InvalidArgumentException
      */
     public function gc($checkExpired = true, $recursive = false, $deleteEmpty = true, $depth = 1)
     {
         $recursive = $recursive && $depth > 0;
-        $checkExpired ? $this->clearExpired() : $this->clear();
+        $result    = $checkExpired ? $this->clearExpired() : $this->clear();
 
         if (!$recursive) {
-            return true;
+            return $result;
         }
 
         $dirs = glob($this->path . '*', GLOB_ONLYDIR | GLOB_NOSORT);
@@ -307,13 +321,13 @@ class FileCacheDriver implements CacheItemPoolInterface
         foreach ($dirs as $dir) {
 
             $pool = new self($dir);
-            $pool->gc($recursive, $deleteEmpty, --$depth);
+            $result = $result && $pool->gc($recursive, $deleteEmpty, --$depth);
 
             if ($deleteEmpty && count(glob($dir . DIRECTORY_SEPARATOR . '*', GLOB_NOSORT)) === 0) {
                 rmdir($dir);
             }
         }
 
-        return true;
+        return $result;
     }
 }

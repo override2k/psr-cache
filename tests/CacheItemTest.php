@@ -1,9 +1,6 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: over
- * Date: 09/11/2017
- * Time: 21:41
+ * Created by Fernando Robledo <overdesign@gmail.com>.
  */
 
 use Overdesign\PsrCache\CacheItem;

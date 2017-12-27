@@ -1,6 +1,6 @@
 <?php
 /**
- * Created by Fernando Robledo <fernando.robledo@opinno.com>.
+ * Created by Fernando Robledo <overdesign@gmail.com>.
  *
  * Date: 9/10/17, Time: 13:07
  */
@@ -16,7 +16,7 @@ class FileCacheDriver implements CacheItemPoolInterface
     /** @var string */
     protected $path;
     /** @var CacheItem[] */
-    protected $cache;
+    protected $deferred = array();
 
     /**
      * FileCacheDriver constructor.
@@ -46,7 +46,11 @@ class FileCacheDriver implements CacheItemPoolInterface
      */
     private function checkKey($key)
     {
-        if (!preg_match('/^[a-zA-Z\d\.\_]+$/', $key)) {
+        if (!is_string($key)) {
+            throw new InvalidArgumentException('The given key must be a string.');
+        } elseif (strlen($key) > 64) {
+            throw new InvalidArgumentException('The key length must not exceed 64 characters.');
+        } elseif (!preg_match('/^[a-zA-Z\d\.\_]+$/', $key)) {
             throw new InvalidArgumentException(sprintf('The given key %s contains invalid characters.', $key));
         }
 
@@ -82,6 +86,9 @@ class FileCacheDriver implements CacheItemPoolInterface
      */
     public function getItem($key)
     {
+        if (array_key_exists($this->checkKey($key), $this->deferred))
+            return clone $this->deferred[$key];
+
         $file = $this->getFilename($key);
 
         if (is_readable($file) && is_file($file)) {
@@ -123,7 +130,7 @@ class FileCacheDriver implements CacheItemPoolInterface
         $collection = array();
 
         foreach ($keys as $key) {
-            $collection[] = $this->getItem($key);
+            $collection[$key] = $this->getItem($key);
         }
 
         return $collection;
@@ -148,7 +155,7 @@ class FileCacheDriver implements CacheItemPoolInterface
      */
     public function hasItem($key)
     {
-        return file_exists($this->getFilename($key));
+        return $this->getItem($key)->isHit();
     }
 
     /**
@@ -159,6 +166,8 @@ class FileCacheDriver implements CacheItemPoolInterface
      */
     public function clear()
     {
+        $this->deferred = array();
+
         $files  = glob($this->path . 'cachepool-*.php', GLOB_NOSORT);
         $result = true;
 
@@ -186,9 +195,12 @@ class FileCacheDriver implements CacheItemPoolInterface
      */
     public function deleteItem($key)
     {
+        if (array_key_exists($this->checkKey($key), $this->deferred))
+            unset($this->deferred[$key]);
+
         $file = $this->getFilename($key);
 
-        return @unlink($file);
+        return file_exists($file) ? @unlink($file) : true;
     }
 
     /**
@@ -247,7 +259,7 @@ class FileCacheDriver implements CacheItemPoolInterface
      */
     public function saveDeferred(CacheItemInterface $item)
     {
-        $this->cache[$item->getKey()] = $item;
+        $this->deferred[$item->getKey()] = $item;
 
         return true;
     }
@@ -264,8 +276,9 @@ class FileCacheDriver implements CacheItemPoolInterface
     {
         $allSaved = true;
 
-        foreach ($this->cache as $item) {
+        foreach ($this->deferred as $item) {
             $allSaved = $this->save($item) && $allSaved;
+            unset($this->deferred[$item->getKey()]);
         }
 
         return $allSaved;
@@ -341,5 +354,13 @@ class FileCacheDriver implements CacheItemPoolInterface
         }
 
         return $result;
+    }
+
+    /**
+     * Save deferred items before destruct
+     */
+    public function __destruct()
+    {
+        $this->commit();
     }
 }

@@ -1,8 +1,6 @@
 <?php
 /**
- * Created by Fernando Robledo <fernando.robledo@opinno.com>.
- *
- * Date: 9/10/17, Time: 13:35
+ * Created by Fernando Robledo <overdesign@gmail.com>.
  */
 
 use Overdesign\PsrCache\CacheItem;
@@ -30,7 +28,6 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Overdesign\PsrCache\CacheItem', $driver->getItem($key));
         $this->assertTrue($driver->deleteItem($key));
         $this->assertFalse($driver->hasItem($key));
-        $this->assertFalse($driver->deleteItem($key));
         $this->assertInstanceOf('Overdesign\PsrCache\CacheItem', $driver->getItem($key));
     }
 
@@ -62,7 +59,7 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
 
         $driver = new FileCacheDriver();
 
-        $this->assertFalse($driver->deleteItems($keys));
+        $this->assertTrue($driver->deleteItems($keys));
 
         $items = $driver->getItems($keys);
 
@@ -85,7 +82,7 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
         $item->set('test');
         $driver->saveDeferred($item);
 
-        $this->assertFalse($driver->getItem('deferred')->isHit());
+        $this->assertTrue($driver->getItem('deferred')->isHit());
 
         $driver->commit();
 
@@ -98,7 +95,7 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
         $keys   = array('1', '2', '3');
         $driver = new FileCacheDriver();
 
-        $this->assertFalse($driver->deleteItems($keys));
+        $this->assertTrue($driver->deleteItems($keys));
 
         $items = $driver->getItems($keys);
 
@@ -117,8 +114,8 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
         $keys2   = array('d', 'e', 'f');
         $driver = new FileCacheDriver();
 
-        $this->assertFalse($driver->deleteItems($keys1));
-        $this->assertFalse($driver->deleteItems($keys2));
+        $this->assertTrue($driver->deleteItems($keys1));
+        $this->assertTrue($driver->deleteItems($keys2));
 
         $items1 = $driver->getItems($keys1);
         $items2 = $driver->getItems($keys2);
@@ -157,8 +154,8 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
         $keys2   = array('d', 'e', 'f');
         $driver = new FileCacheDriver();
 
-        $this->assertFalse($driver->deleteItems($keys1));
-        $this->assertFalse($driver->deleteItems($keys2));
+        $this->assertTrue($driver->deleteItems($keys1));
+        $this->assertTrue($driver->deleteItems($keys2));
 
         $items1 = $driver->getItems($keys1);
         $items2 = $driver->getItems($keys2);

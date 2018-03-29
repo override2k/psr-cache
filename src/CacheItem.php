@@ -13,7 +13,6 @@ use Psr\Cache\CacheItemInterface;
 
 class CacheItem implements CacheItemInterface
 {
-
     /** @var string */
     protected $key;
     /** @var bool */
@@ -125,11 +124,11 @@ class CacheItem implements CacheItemInterface
      */
     public function expiresAt($expiration)
     {
-        if ($expiration instanceof DateTime || // php < 5.5
+        if ($expiration === null ||
+            $expiration instanceof DateTime || // php < 5.5
             $expiration instanceof DateTimeInterface) {
 
             $this->expiresAt = $expiration;
-
         }
 
         return $this;
@@ -170,5 +169,4 @@ class CacheItem implements CacheItemInterface
     {
         $this->isHit = !$this->isExpired();
     }
-
 }

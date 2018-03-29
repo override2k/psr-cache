@@ -74,7 +74,6 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
         }
 
         $this->assertTrue($driver->deleteItems($keys));
-
     }
 
     public function testSaveDeferred()
@@ -178,7 +177,6 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
             $driver->save($item);
         }
 
-
         sleep(2);
 
         $this->assertTrue($driver->gc(true, true));
@@ -188,6 +186,5 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($driver->gc(false, true));
         $fileCount = glob($driver->getPath() . 'cachepool-*.php', GLOB_NOSORT);
         $this->assertCount(0, $fileCount);
-
     }
 }

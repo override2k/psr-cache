@@ -272,8 +272,9 @@ class FileCacheDriver implements CacheItemPoolInterface
     {
         $file = $this->getFilename($item->getKey());
 
-        if (false === file_put_contents($file, serialize($item)))
+        if (false === file_put_contents($file, serialize($item))) {
             throw new CacheException(sprintf('Cant write to cache file %s', $file), CacheException::ERROR_CANT_WRITE);
+        }
 
         return true;
     }
@@ -366,7 +367,6 @@ class FileCacheDriver implements CacheItemPoolInterface
         $dirs = glob($this->path . '*', GLOB_ONLYDIR | GLOB_NOSORT);
 
         foreach ($dirs as $dir) {
-
             $pool = new self($dir);
             $result = $result && $pool->gc($recursive, $deleteEmpty, --$depth);
 

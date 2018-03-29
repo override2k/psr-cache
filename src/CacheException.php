@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Created by Fernando Robledo <overdesign@gmail.com>
+ * Created by Fernando Robledo <overdesign@gmail.com>.
  */
 
 namespace Overdesign\PsrCache;

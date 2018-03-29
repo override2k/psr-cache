@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Created by Fernando Robledo <overdesign@gmail.com>
+ * Created by Fernando Robledo <overdesign@gmail.com>.
  */
 
 namespace Overdesign\PsrCache;
@@ -36,8 +36,9 @@ class CacheItem implements CacheItemInterface
      */
     private function isExpired()
     {
-        if ($this->expiresAt === null)
+        if ($this->expiresAt === null) {
             return false;
+        }
 
         $now = new DateTime();
 
@@ -127,7 +128,6 @@ class CacheItem implements CacheItemInterface
         if ($expiration === null ||
             $expiration instanceof DateTime || // php < 5.5
             $expiration instanceof DateTimeInterface) {
-
             $this->expiresAt = $expiration;
         }
 

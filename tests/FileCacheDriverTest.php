@@ -12,13 +12,17 @@ use Overdesign\PsrCache\FileCacheDriver;
  */
 class FileCacheDriverTest extends PHPUnit_Framework_TestCase
 {
+    private function getCachePool()
+    {
+        return new FileCacheDriver(__DIR__ . '/tmp/');
+    }
 
     public function testPersist()
     {
         $key = 'abcABC_123.123';
         $data = 'My data';
 
-        $driver = new FileCacheDriver();
+        $driver = $this->getCachePool();
         $item = new CacheItem($key);
 
         $item->set($data);
@@ -37,7 +41,7 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
      */
     public function testBadKey()
     {
-        $driver = new FileCacheDriver();
+        $driver = $this->getCachePool();
 
         $driver->getItem('BadKey#@!');
     }
@@ -46,7 +50,7 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
     {
         $keys = array('1', '2', '3');
 
-        $driver = new FileCacheDriver();
+        $driver = $this->getCachePool();
 
         $items = $driver->getItems($keys);
 
@@ -57,7 +61,7 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
     {
         $keys = array('1', '2', '3');
 
-        $driver = new FileCacheDriver();
+        $driver = $this->getCachePool();
 
         $this->assertTrue($driver->deleteItems($keys));
 
@@ -75,7 +79,7 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
 
     public function testSaveDeferred()
     {
-        $driver = new FileCacheDriver();
+        $driver = $this->getCachePool();
 
         $item = $driver->getItem('deferred');
 
@@ -93,7 +97,7 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
     public function testClear()
     {
         $keys   = array('1', '2', '3');
-        $driver = new FileCacheDriver();
+        $driver = $this->getCachePool();
 
         $this->assertTrue($driver->deleteItems($keys));
 
@@ -112,7 +116,7 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
     {
         $keys1   = array('a', 'b', 'c');
         $keys2   = array('d', 'e', 'f');
-        $driver = new FileCacheDriver();
+        $driver = $this->getCachePool();
 
         $this->assertTrue($driver->deleteItems($keys1));
         $this->assertTrue($driver->deleteItems($keys2));
@@ -152,7 +156,7 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
     {
         $keys1   = array('a', 'b', 'c');
         $keys2   = array('d', 'e', 'f');
-        $driver = new FileCacheDriver();
+        $driver = $this->getCachePool();
 
         $this->assertTrue($driver->deleteItems($keys1));
         $this->assertTrue($driver->deleteItems($keys2));
@@ -186,5 +190,4 @@ class FileCacheDriverTest extends PHPUnit_Framework_TestCase
         $this->assertCount(0, $fileCount);
 
     }
-
 }

@@ -1,15 +1,13 @@
 <?php
-/**
+
+/*
  * Created by Fernando Robledo <overdesign@gmail.com>.
- *
- * Date: 9/10/17, Time: 13:07
  */
 
 namespace Overdesign\PsrCache;
 
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
-
 
 class FileCacheDriver implements CacheItemPoolInterface
 {
@@ -41,15 +39,13 @@ class FileCacheDriver implements CacheItemPoolInterface
     /**
      * @param string $key
      *
-     * @return string
+     * @return string hashed key
      * @throws InvalidArgumentException
      */
     private function checkKey($key)
     {
         if (!is_string($key)) {
             throw new InvalidArgumentException('The given key must be a string.');
-        } elseif (strlen($key) > 64) {
-            throw new InvalidArgumentException('The key length must not exceed 64 characters.');
         } elseif (!preg_match('/^[a-zA-Z\d\.\_]+$/', $key)) {
             throw new InvalidArgumentException(sprintf('The given key %s contains invalid characters.', $key));
         }
@@ -59,13 +55,14 @@ class FileCacheDriver implements CacheItemPoolInterface
 
     /**
      * @param string $key
+     * @param bool $hash
      *
      * @return string
-     * @throws InvalidArgumentException
      */
-    private function getFilename($key)
+    private function getFilename($key, $hash = true)
     {
-        return $this->path . "cachepool-{$this->checkKey($key)}.php";
+        $key = $hash ? sha1($key) : $key;
+        return $this->path . "cachepool-{$key}.php";
     }
 
     /**
@@ -86,27 +83,57 @@ class FileCacheDriver implements CacheItemPoolInterface
      */
     public function getItem($key)
     {
-        if (array_key_exists($this->checkKey($key), $this->deferred))
+        $key = $this->checkKey($key);
+
+        if (array_key_exists($key, $this->deferred)) {
             return clone $this->deferred[$key];
+        }
 
         $file = $this->getFilename($key);
 
-        if (is_readable($file) && is_file($file)) {
+        return $this->readCacheFile($file) ?: new CacheItem($key);
+    }
 
-            $data = file_get_contents($file);
-            $data = $data === false ? false : unserialize($data);
-
-            if ($data !== false && $data instanceof CacheItem) {
-                if ($data->isHit() === false) {// Expired
-                    $this->deleteItem($key);
-                }
-
-                return $data;
-            }
-
+    /**
+     * @param string $file filename
+     *
+     * @return false|CacheItem
+     * @throws InvalidArgumentException
+     */
+    private function readCacheFile($file)
+    {
+        if (!is_file($file) || !is_readable($file)) {
+            return false;
         }
 
-        return new CacheItem($key);
+        $item = file_get_contents($file);
+        $item = $item === false ? false : unserialize($item);
+
+        if ($item === false || !$item instanceof CacheItem) {
+            return false;
+        }
+
+        if ($item->isHit() === false) {
+            $this->deleteItem($item->getKey()); // clear expired
+        }
+
+        return $item;
+    }
+
+    /**
+     * Gets a cache file by key hash
+     *
+     * @param string $hash sha1 key hash
+     *
+     * @return CacheItem
+     *
+     * @throws InvalidArgumentException
+     */
+    private function getItemByHash($hash)
+    {
+        $file = $this->getFilename($hash, false);
+
+        return $this->readCacheFile($file) ?: new CacheItem($key);
     }
 
     /**
@@ -172,9 +199,9 @@ class FileCacheDriver implements CacheItemPoolInterface
         $result = true;
 
         foreach ($files as $file) {
-
-            if (is_file($file))
+            if (is_file($file)) {
                 $result = @unlink($file) && $result;
+            }
         }
 
         return $result;
@@ -195,8 +222,11 @@ class FileCacheDriver implements CacheItemPoolInterface
      */
     public function deleteItem($key)
     {
-        if (array_key_exists($this->checkKey($key), $this->deferred))
+        $key = $this->checkKey($key);
+
+        if (array_key_exists($key, $this->deferred)) {
             unset($this->deferred[$key]);
+        }
 
         $file = $this->getFilename($key);
 
@@ -292,28 +322,20 @@ class FileCacheDriver implements CacheItemPoolInterface
      */
     public function clearExpired()
     {
-        $regex  = '/cachepool-(?P<key>[a-zA-Z\d\.\_]+)\.php$/';
+        $regex  = '/cachepool-(?P<hash>[0-9a-f]+)\.php$/';
         $files  = glob($this->path . 'cachepool-*.php', GLOB_NOSORT);
         $result = true;
 
         foreach ($files as $file) {
-
-            if (preg_match($regex, $file, $key) === false) {
+            if (preg_match($regex, $file, $hash) === false) {
                 continue;
             }
 
             try {
-
-                $key = $this->checkKey($key['key']);
-
-                is_file($file) && !$this->getItem($key); // Get item auto clears expired items
-
+                $this->getItemByHash($hash['hash']); // Get item auto clears expired items
             } catch (InvalidArgumentException $e) {
-
                 $result = false;
-
             }
-
         }
 
         return $result;

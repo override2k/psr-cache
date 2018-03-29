@@ -1,5 +1,6 @@
 <?php
-/**
+
+/*
  * Created by Fernando Robledo <overdesign@gmail.com>
  */
 
@@ -9,7 +10,6 @@ use DateInterval;
 use DateTime;
 use DateTimeInterface;
 use Psr\Cache\CacheItemInterface;
-
 
 class CacheItem implements CacheItemInterface
 {

@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/override2k/psr-cache.svg?branch=master)](https://travis-ci.org/override2k/psr-cache) 
 [![codecov](https://codecov.io/gh/override2k/psr-cache/branch/master/graph/badge.svg)](https://codecov.io/gh/override2k/psr-cache)
-
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/override2k/psr-cache/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/override2k/psr-cache/?branch=master)
 
 
 # PSR-6 Compilant File Cache
